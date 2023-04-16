@@ -1,0 +1,9 @@
+#ignorar todos los .exe, .obj, y .tds
+*.exe
+*.obj
+*.tds
+
+#ignorar los archivos sin extension
+*
+!*.*
+
