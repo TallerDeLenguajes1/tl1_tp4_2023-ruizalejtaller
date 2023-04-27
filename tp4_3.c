@@ -17,12 +17,12 @@ struct TNodo {
 } typedef TNodo;
 
 TNodo * inicializarLista();
-void cargarTarea (TNodo **, Tareas, int cant);
+void cargarTarea (TNodo **, Tareas, int id);
 TNodo * crearNodo (Tareas);
 void listarTarea (TNodo *);
-void preguntarRealizada (TNodo **, TNodo **, int);
-void cambiarRealizada (TNodo ** , TNodo **, TNodo **);
-void quitarNodo (TNodo **, TNodo **);
+void preguntarRealizada (TNodo **, TNodo **);
+void cambiarRealizada (TNodo ** , TNodo **, int);
+TNodo * quitarNodo (TNodo **, int);
 TNodo * buscarPorID (TNodo ** Start, int idBus);
 TNodo * buscarPorPalabra (TNodo ** Start, char *);
 void liberar (TNodo **);
@@ -32,9 +32,9 @@ int main ()
 {
     srand(time(NULL));
 
-    int cant, id;
+    int cant, id, i = 0;
     TNodo ** StPendientes, ** StRealizadas;
-    Tareas Tarea, TareasRealizadas;
+    Tareas Tarea;
 
     StPendientes = (TNodo **) malloc(sizeof(TNodo *));
     StRealizadas = (TNodo **) malloc(sizeof(TNodo *));
@@ -42,13 +42,17 @@ int main ()
    * StPendientes = inicializarLista();
    * StRealizadas = inicializarLista();
 
-    printf("Ingrese la cantidad de tareas a cargar: ");
+
+    do {
+    i ++;
+    cargarTarea(StPendientes, Tarea, i);
+    
+    printf("Desea ingresar otra tarea ? (Cualquier num seguir / 0 Fin): ");
     scanf("%d", &cant);
     getchar();
+    } while (cant);
 
-    cargarTarea(StPendientes, Tarea, cant);
-    
-    preguntarRealizada(StPendientes, StRealizadas, cant);
+    preguntarRealizada(StPendientes, StRealizadas);
 
     // Mostrar tareas
     printf("\n// Tareas Pendientes //\n");
@@ -104,8 +108,21 @@ int main ()
 
     Aux = buscarPorPalabra(StPendientes, Buff);
 
-    
+    if (Aux)
+    {
+        printf("\n---La Tarea sigue pendiente---\n");
+        listarTarea(Aux);
+    } else {
 
+        Aux = buscarPorPalabra(StRealizadas, Buff);
+
+        if (Aux)
+        {
+            printf("\n---La Tarea ya fue realizada---\n");
+            listarTarea(Aux);
+        } else printf ("\n---Tarea no encontrada---\n");
+    }
+    
     free(Buff);
     liberar(StPendientes); free (StRealizadas);
 
@@ -119,30 +136,28 @@ TNodo * inicializarLista ()
     return NULL;
 } 
 
-void cargarTarea (TNodo ** StPendientes, Tareas TareasPendientes, int cant)
+void cargarTarea (TNodo ** StPendientes, Tareas TareasPendientes, int id)
 {
     size_t BuffSize = 100;
     char * Buff = malloc(BuffSize * sizeof(char));
-    
-    for (int i=0; i<cant; i++) {
 
-        printf("\nIngrese la descripción de la tarea ID %d: ", i);
-        getline(&Buff, &BuffSize, stdin);
+    printf("\nIngrese la descripción de la tarea %d: ", id);
+    getline(&Buff, &BuffSize, stdin);
 
-        TareasPendientes.Descripcion = malloc((strlen(Buff)+1) * sizeof(char));
-        strcpy (TareasPendientes.Descripcion, Buff);
+    TareasPendientes.Descripcion = malloc((strlen(Buff)+1) * sizeof(char));
+    strcpy (TareasPendientes.Descripcion, Buff);
 
-        TareasPendientes.TareaID = i;
-        TareasPendientes.Duracion = 10 + rand()%91;
+    TareasPendientes.TareaID = id;
+    TareasPendientes.Duracion = 10 + rand()%91;
 
-        TNodo * NuevoNodo = crearNodo(TareasPendientes);
-        NuevoNodo->sig = * StPendientes;
-        * StPendientes = NuevoNodo;
-    }
+    TNodo * NuevoNodo = crearNodo(TareasPendientes);
+    NuevoNodo->sig = * StPendientes;
+    * StPendientes = NuevoNodo;
 
-    //free(Buff);
-
+    free(Buff);
 }
+
+
 
 TNodo * crearNodo (Tareas Tarea)
 {
@@ -169,75 +184,71 @@ void listarTarea (TNodo * Tarea)
     }
 }
 
-void preguntarRealizada (TNodo ** StPendientes, TNodo ** StRealizada, int cant)
+void preguntarRealizada (TNodo ** StPendientes, TNodo ** StRealizada)
 {
         int real;
 
-        TNodo ** Aux;
-        TNodo ** AuxAnt = Aux;
+        TNodo * Aux = * StPendientes;
+        TNodo * AuxAux;
 
-        * Aux = (TNodo *) malloc (sizeof(TNodo));
-        * AuxAnt = (TNodo *) malloc (sizeof(TNodo));
-
-        * Aux = * StPendientes;
-
-
-        while (* Aux)
+        while (Aux)
         {
-            listarTarea(* Aux);
+            listarTarea(Aux);
 
             printf("Ya se realizó esta tarea? (1 para SI): ");
             scanf("%d", &real);
             getchar();
+
+            AuxAux = Aux->sig;  
         
-            if (real == 1) {
-                printf("\nTarea %d realizada! \n ", (* Aux)->Tarea.TareaID);
+            if (real == 1)
+            {
+                printf("\nTarea %d realizada! \n ", Aux->Tarea.TareaID);
+                cambiarRealizada(StRealizada, StPendientes, Aux->Tarea.TareaID);             
+            } 
 
-                cambiarRealizada(StRealizada, StPendientes, Aux);                
-
-            } else {
-            * AuxAnt = * Aux;
-            * Aux = (* Aux)->sig;
-            }
+            Aux = AuxAux;       
         }
 }
 
-void cambiarRealizada (TNodo ** StRealizada, TNodo ** StPendientes, TNodo ** Aux)
+void cambiarRealizada (TNodo ** StOrg, TNodo ** StDst, int id)
 {
-    TNodo * NuevoN = * StRealizada;
-    NuevoN = (TNodo *) malloc(sizeof(TNodo));
-    NuevoN = * Aux;
-    quitarNodo(StPendientes, Aux);
+    TNodo * Aux;
 
-    NuevoN->sig = * StRealizada;
-    * StRealizada = NuevoN;
+    Aux = quitarNodo(StDst, id);
+    TNodo * NuevoN = * StOrg;
+    NuevoN = (TNodo *) malloc(sizeof(TNodo));
+    NuevoN = Aux;
+
+    NuevoN->sig = * StOrg;
+    * StOrg = NuevoN;
 }
 
-void quitarNodo (TNodo ** Start, TNodo ** Aux)
+TNodo * quitarNodo (TNodo ** Start, int id)
 {
-    if (* Start == * Aux)
+    TNodo * Aux = * Start;
+    TNodo * AuxAnt;
+
+    while (Aux && Aux->Tarea.TareaID !=id)
     {
-        * Start = (* Aux)->sig;
-        * Aux = (* Start);
+        AuxAnt = Aux;
+        Aux = Aux->sig;
     }
 
-    else {
-        TNodo * AuxAnt;
-        TNodo * AuxAux = * Start;
-        while (AuxAux && * Aux != AuxAux)
+    if (Aux)
+    {
+        if (Aux == * Start)
         {
-            AuxAnt = AuxAux;
-            AuxAux = AuxAux->sig;
+            * Start = Aux->sig;
+        }   
+        else {
+        
+            AuxAnt->sig = Aux->sig;
         }
 
-        if (AuxAux)
-        {
-            AuxAnt->sig = AuxAux->sig;
+    }
 
-            * Aux = AuxAux->sig;
-        }
-
-        }
+    return Aux;
 }
 
 TNodo * buscarPorID (TNodo ** Start, int idBus)
