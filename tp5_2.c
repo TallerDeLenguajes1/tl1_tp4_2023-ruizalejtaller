@@ -45,7 +45,7 @@ int main ()
     StRealizadas = (TNodo **) malloc(sizeof(TNodo *));
 
    * StPendientes = inicializarLista();
-   * StRealizadas = inicializarLista();
+   * StProceso = inicializarLista();
    * StRealizadas = inicializarLista();
 
 
@@ -59,7 +59,6 @@ int main ()
 
 TNodo * inicializarLista ()
 {
-
     return NULL;
 } 
 
@@ -123,7 +122,6 @@ void cargarTarea (TNodo ** StPendientes, Tareas TareasPendientes, int id)
     * StPendientes = NuevoNodo;
 
     free(Buff);
-
 }
 
 TNodo * crearNodo (Tareas Tarea)
@@ -139,7 +137,6 @@ TNodo * crearNodo (Tareas Tarea)
 
 void listarTarea (TNodo * Tarea)
 {
-
     if (Tarea) {
         printf("--------------------------------\n");
         printf("Tarea ID: %d\n", Tarea->Tarea.TareaID);
