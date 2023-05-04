@@ -51,7 +51,7 @@ int main ()
 
     menu (StPendientes, StProceso, StRealizadas, Tarea);
 
-    liberar(StPendientes); free (StRealizadas); free (StProceso);
+    liberar(StPendientes); liberar(StRealizadas); liberar(StProceso);
 
     return 0;
 }
